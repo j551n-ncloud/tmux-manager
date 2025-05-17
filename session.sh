@@ -15,14 +15,14 @@ show_menu() {
     echo "1) List & Attach to Session"
     echo "2) Create New Session"
     echo "3) Rename Session"
-    echo "4) Exit"
-    echo -n "Choose an option [1-4]: "
+    echo "4) Delete Session"
+    echo "5) Exit"
+    echo -n "Choose an option [1-5]: "
 }
 
 # Attach to a selected session
 list_and_attach() {
     sessions=($(tmux list-sessions -F "#{session_name}" 2>/dev/null))
-
     if [ ${#sessions[@]} -eq 0 ]; then
         echo "No sessions found."
         return
@@ -62,7 +62,6 @@ create_session() {
 # Rename a session
 rename_session() {
     sessions=($(tmux list-sessions -F "#{session_name}" 2>/dev/null))
-
     if [ ${#sessions[@]} -eq 0 ]; then
         echo "No sessions available to rename."
         return
@@ -93,6 +92,39 @@ rename_session() {
     fi
 }
 
+# Delete a session
+delete_session() {
+    sessions=($(tmux list-sessions -F "#{session_name}" 2>/dev/null))
+    if [ ${#sessions[@]} -eq 0 ]; then
+        echo "No sessions available to delete."
+        return
+    fi
+
+    if command -v fzf &> /dev/null; then
+        to_delete=$(printf "%s\n" "${sessions[@]}" | fzf --prompt="Select session to delete: ")
+    else
+        echo "Select session to delete:"
+        select session in "${sessions[@]}"; do
+            if [ -n "$session" ]; then
+                to_delete="$session"
+                break
+            else
+                echo "Invalid choice. Try again."
+            fi
+        done
+    fi
+
+    if [ -n "$to_delete" ]; then
+        read -p "Are you sure you want to delete session '$to_delete'? [y/N]: " confirm
+        if [[ "$confirm" =~ ^[Yy]$ ]]; then
+            tmux kill-session -t "$to_delete"
+            echo "Session '$to_delete' deleted."
+        else
+            echo "Deletion cancelled."
+        fi
+    fi
+}
+
 # Main loop
 while true; do
     show_menu
@@ -101,7 +133,8 @@ while true; do
         1) list_and_attach ;;
         2) create_session ;;
         3) rename_session ;;
-        4) echo "Goodbye!"; exit 0 ;;
-        *) echo "Invalid option. Please choose 1–4." ;;
+        4) delete_session ;;
+        5) echo "Goodbye!"; exit 0 ;;
+        *) echo "Invalid option. Please choose 1–5." ;;
     esac
 done

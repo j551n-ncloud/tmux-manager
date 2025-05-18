@@ -29,11 +29,16 @@ list_and_attach() {
     fi
 
     if command -v fzf &> /dev/null; then
-        selected=$(printf "%s\n" "${sessions[@]}" | fzf --prompt="Select session to attach: ")
+        selected=$(printf "%s\n" "${sessions[@]}" | fzf --prompt="Select session to attach (Esc to cancel): ")
+        [ -z "$selected" ] && echo "No session selected." && return
     else
         echo "Available sessions:"
-        select session in "${sessions[@]}"; do
-            if [ -n "$session" ]; then
+        sessions_with_back=("${sessions[@]}" "Back")
+        select session in "${sessions_with_back[@]}"; do
+            if [ "$session" == "Back" ]; then
+                echo "Returning to main menu."
+                return
+            elif [ -n "$session" ]; then
                 selected="$session"
                 break
             else
@@ -44,8 +49,6 @@ list_and_attach() {
 
     if [ -n "$selected" ]; then
         tmux attach -t "$selected"
-    else
-        echo "No session selected."
     fi
 }
 
@@ -69,10 +72,15 @@ rename_session() {
 
     if command -v fzf &> /dev/null; then
         old_name=$(printf "%s\n" "${sessions[@]}" | fzf --prompt="Select session to rename: ")
+        [ -z "$old_name" ] && echo "No session selected." && return
     else
         echo "Select session to rename:"
-        select session in "${sessions[@]}"; do
-            if [ -n "$session" ]; then
+        sessions_with_back=("${sessions[@]}" "Back")
+        select session in "${sessions_with_back[@]}"; do
+            if [ "$session" == "Back" ]; then
+                echo "Returning to main menu."
+                return
+            elif [ -n "$session" ]; then
                 old_name="$session"
                 break
             else
@@ -102,10 +110,15 @@ delete_session() {
 
     if command -v fzf &> /dev/null; then
         to_delete=$(printf "%s\n" "${sessions[@]}" | fzf --prompt="Select session to delete: ")
+        [ -z "$to_delete" ] && echo "No session selected." && return
     else
         echo "Select session to delete:"
-        select session in "${sessions[@]}"; do
-            if [ -n "$session" ]; then
+        sessions_with_back=("${sessions[@]}" "Back")
+        select session in "${sessions_with_back[@]}"; do
+            if [ "$session" == "Back" ]; then
+                echo "Returning to main menu."
+                return
+            elif [ -n "$session" ]; then
                 to_delete="$session"
                 break
             else

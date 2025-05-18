@@ -20,5 +20,5 @@ List, attach, create, and rename sessions with ease — all from a terminal menu
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/tmux-session-manager.git
+   git clone https://github.com/yourusername/tmux-manager.git
    cd tmux-session-manager
